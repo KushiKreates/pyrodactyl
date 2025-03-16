@@ -70,19 +70,15 @@ class NodeViewController extends Controller
    * Return the node allocation management page.
    */
   public function allocations(Request $request, Node $node): View
-  {
-    $node = $this->repository->loadNodeAllocations($node);
-
-    $this->plainInject(['node' => Collection::wrap($node)->only(['id'])]);
-
-    return $this->view->make('admin.nodes.view.allocation', [
-      'node' => $node,
-      'allocations' => Allocation::query()->where('node_id', $node->id)
-        ->groupBy('ip')
-        ->orderByRaw('ip::inet ASC')
-        ->get(['ip']),
-    ]);
-  }
+    {
+        return $this->view->make('admin.nodes.view.allocation', [
+            'node' => $node,
+            'allocations' => Allocation::query()->where('node_id', $node->id)
+                ->groupBy('ip')
+                ->orderBy(DB::raw('INET_ATON(ip)'), 'ASC') // Use MySQL's INET_ATON function
+                ->get(['ip']),
+        ]);
+    }
 
   /**
    * Return a listing of servers that exist for this specific node.
